@@ -22,17 +22,11 @@ func MakeUrl(cfg appconfig.Config) (string, error) {
 func makeUrlTrojan(cfg appconfig.Config) string {
 	u := &url.URL{
 		Scheme:   protocols.Trojan,
-		Host:     fmt.Sprintf("%s:%d", cfg.PublicIP, cfg.Listen.Port),
+		Host:     getHost(cfg),
 		User:     url.User(cfg.TrojanPassword),
 		Fragment: cfg.Name(),
 	}
-	q := u.Query()
-	q.Set("type", "tcp")
-	q.Set("security", "reality")
-	q.Set("fp", "chrome")
-	// q.Set("sni", "") // fixme: use sni?
-	q.Set("pbk", cfg.Reality.PublicKey)
-	q.Set("sid", cfg.Reality.ShortId)
+	q := getCommonQuery(cfg)
 	u.RawQuery = q.Encode()
 
 	return u.String()
@@ -41,19 +35,31 @@ func makeUrlTrojan(cfg appconfig.Config) string {
 func makeUrlVless(cfg appconfig.Config) string {
 	u := &url.URL{
 		Scheme:   protocols.Vless,
-		Host:     fmt.Sprintf("%s:%d", cfg.PublicIP, cfg.Listen.Port),
+		Host:     getHost(cfg),
 		User:     url.User(cfg.VlessUUID),
 		Fragment: cfg.Name(),
 	}
-	q := u.Query()
+	u.Query()
+	q := getCommonQuery(cfg)
 	q.Set("flow", vlessFlowVision)
-	q.Set("type", "tcp")
-	q.Set("security", "reality")
-	q.Set("fp", "chrome")
-	// q.Set("sni", "") // fixme: use sni?
-	q.Set("pbk", cfg.Reality.PublicKey)
-	q.Set("sid", cfg.Reality.ShortId)
 	u.RawQuery = q.Encode()
 
 	return u.String()
+}
+
+func getHost(cfg appconfig.Config) string {
+	return fmt.Sprintf("%s:%d", cfg.PublicIP, cfg.Listen.Port)
+}
+
+func getCommonQuery(cfg appconfig.Config) url.Values {
+	q := make(url.Values)
+
+	q.Set("type", "tcp")
+	q.Set("security", "reality")
+	q.Set("fp", "chrome")
+	q.Set("sni", cfg.Reality.Server)
+	q.Set("pbk", cfg.Reality.PublicKey)
+	q.Set("sid", cfg.Reality.ShortId)
+
+	return q
 }

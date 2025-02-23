@@ -1,0 +1,20 @@
+services:
+  unchained:
+    image: ghcr.io/awryme/unchained
+    container_name: unchained
+    restart: always
+    network_mode: "host"
+    # you can discover env options with -h flag
+    # environment:
+        # default dns is 1.1.1.1 over tls, you can set it to something else
+      # - DNS=tls://1.1.1.1
+
+        # set custom tag to show in client app
+      # - TAGS=myserver
+
+        # default proto is trojan, you can set it vless
+      # - PROTO=trojan
+    # set volume for /config/ to save file to host and modify it later
+    # config file has more values than flags/env
+    # volumes:
+    #   - ./:/config/

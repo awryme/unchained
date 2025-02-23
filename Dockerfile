@@ -9,5 +9,7 @@ RUN go build -v -o /bins/unchained -tags with_reality_server ./cmd/unchained
 FROM alpine
 COPY --from=build /bins/unchained /bins/unchained
 
-ENTRYPOINT [ "/bins/unchained"]
+WORKDIR /config
+
+ENTRYPOINT [ "/bins/unchained", "-c", "/config/unchained.json" ]
 CMD [  "run" ]
