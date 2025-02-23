@@ -151,7 +151,11 @@ func generateRealityKeyPair() (privateKey string, publicKey string, err error) {
 }
 
 func generateRealityShortId() string {
-	return fmt.Sprintf("%x", rand.Uint32())
+	sid := fmt.Sprintf("%x", rand.Uint32())
+	if len(sid)%2 == 1 {
+		sid += "f"
+	}
+	return sid
 }
 
 func (cfg *Config) setPublicIP(ctx context.Context) error {

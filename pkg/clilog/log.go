@@ -10,7 +10,7 @@ var Output = os.Stdout
 var logger = log.New(Output, "", 0)
 
 func Log(v ...any) {
-	logger.Print(v...)
+	logger.Println(v...)
 }
 
 func Logf(format string, v ...any) {

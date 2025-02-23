@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"strings"
 	"time"
-
-	"github.com/awryme/unchained/constants"
 )
 
 type Config struct {
@@ -24,11 +22,11 @@ type Config struct {
 }
 
 func (cfg Config) Name() string {
-	var tagSuffix string
+	var tags string
 	if len(cfg.Tags) > 0 {
-		tagSuffix = "_" + strings.Join(cfg.Tags, "_")
+		tags = "_" + strings.Join(cfg.Tags, "_")
 	}
-	return fmt.Sprintf("%s-%s%s", constants.AppName, cfg.ID, tagSuffix)
+	return fmt.Sprintf("%s%s_%s", cfg.ID, tags, cfg.Proto)
 }
 
 type Listen struct {

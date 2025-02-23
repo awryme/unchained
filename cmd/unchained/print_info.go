@@ -11,11 +11,12 @@ import (
 )
 
 func printInfo(cfg appconfig.Config) error {
-	clilog.Log("Log level:", cfg.LogLevel)
-	clilog.Log("DNS:", cfg.DNS)
-	clilog.Log("Protocol:", cfg.Proto)
-	clilog.Log("Port:", cfg.Listen.Port)
-	clilog.Log("Reality server:", cfg.Reality.Server)
+	clilog.Log("log:", cfg.LogLevel)
+	clilog.Log("dns:", cfg.DNS)
+	clilog.Log("proto:", cfg.Proto)
+	clilog.Log("port:", cfg.Listen.Port)
+	clilog.Log("reality_server:", cfg.Reality.Server)
+	clilog.Log("name:", cfg.Name())
 	clilog.Log()
 
 	url, err := singboxserver.MakeUrl(cfg)
