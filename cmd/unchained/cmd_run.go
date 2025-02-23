@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/awryme/unchained/appconfig"
 	"github.com/awryme/unchained/pkg/clilog"
@@ -28,6 +29,7 @@ func (c *CmdRun) Run(app *App) error {
 	if err != nil {
 		return err
 	}
+	clilog.Log("Started at", time.Now().Format(time.DateTime))
 	err = printInfo(cfg)
 	if err != nil {
 		return err

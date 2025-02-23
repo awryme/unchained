@@ -15,9 +15,9 @@ That's it :)
 - Vless + VISION + Reality
 
 # Run with docker
-```
-docker run -d --name unchained --network host -e TAGS=myserver ghcr.io/awryme/unchained:latest
-```
+`docker run -d --name unchained --network host -e TAGS=myserver ghcr.io/awryme/unchained:latest`
+
+`docker logs unchained`
 
 Example `docker-compose.yml` provided in repo
 
