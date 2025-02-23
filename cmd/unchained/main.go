@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/alecthomas/kong"
 	"github.com/awryme/unchained/constants"
+	"github.com/awryme/unchained/pkg/protocols"
 )
 
 type App struct {
@@ -22,9 +24,11 @@ func main() {
 		kong.Description(fmt.Sprintf("%s is a vpn/proxy application that sets up everything for you", constants.AppName)),
 		kong.DefaultEnvars(""),
 		kong.Vars{
-			"appname":   constants.AppName,
-			"dns":       constants.DefaultDns,
-			"log_level": constants.DefaultLogLevel,
+			"appname":       constants.AppName,
+			"dns":           constants.DefaultDns,
+			"log_level":     constants.DefaultLogLevel,
+			"protos":        strings.Join(protocols.List, ","),
+			"default_proto": protocols.Trojan,
 		},
 	)
 	err := appctx.Run()

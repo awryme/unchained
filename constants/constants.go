@@ -5,8 +5,8 @@ import "time"
 const AppName = "unchained"
 
 const DefaultDns = "tls://1.1.1.1"
-const ListenAddr = "0.0.0.0"
-const DefaultLogLevel = "error"
+const DefaultListenAddr = "0.0.0.0"
+const DefaultLogLevel = "warn"
 const DefaultRealityServer = "github.com"
 const DefaultRealityTimeDiff = time.Minute
 
