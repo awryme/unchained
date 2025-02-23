@@ -11,7 +11,7 @@ import (
 
 type App struct {
 	Config   string      `help:"file to store generated/edited config file" short:"c" default:"./${appname}.json"`
-	Run      CmdRun      `cmd:"" help:"run vpn server, generates config if it doesn't exist (default command if no other provided)"`
+	Run      CmdRun      `cmd:"" help:"run vpn server, generates config if it doesn't exist"`
 	Print    CmdPrint    `cmd:"" help:"print connection info for client"`
 	Generate CmdGenerate `cmd:"" help:"generate config without running the server"`
 	Reset    CmdReset    `cmd:"" help:"cleans up configs/files used by this command"`
