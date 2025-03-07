@@ -4,15 +4,11 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"io"
 	"math/rand/v2"
 	"net"
-	"net/http"
-	"time"
 
-	"github.com/awryme/unchained/constants"
+	"github.com/awryme/ipinfo"
 	"github.com/awryme/unchained/pkg/clilog"
-	"github.com/awryme/unchained/pkg/ipv6detector"
 	"github.com/awryme/unchained/pkg/protocols"
 	"github.com/gofrs/uuid/v5"
 	"github.com/sethvargo/go-password/password"
@@ -21,11 +17,11 @@ import (
 
 func Generate(ctx context.Context, params *RuntimeParams) (Config, error) {
 	cfg := Config{
-		LogLevel: constants.DefaultLogLevel,
-		DNS:      constants.DefaultDns,
+		LogLevel: DefaultLogLevel,
+		DNS:      DefaultDns,
 		Proto:    protocols.Trojan,
 		Listen: Listen{
-			Addr: constants.DefaultListenAddr,
+			Addr: DefaultListenAddr,
 		},
 	}
 
@@ -55,8 +51,6 @@ func Generate(ctx context.Context, params *RuntimeParams) (Config, error) {
 		return cfg, err
 	}
 
-	cfg.setIPv4Only(ctx)
-
 	return cfg, nil
 }
 
@@ -70,9 +64,9 @@ func (cfg *Config) setRealityConfig() error {
 		PrivateKey: privateKey,
 		PublicKey:  publicKey,
 
-		Server:   constants.DefaultRealityServer,
+		Server:   DefaultRealityServer,
 		ShortId:  generateRealityShortId(),
-		TimeDiff: constants.DefaultRealityTimeDiff,
+		TimeDiff: DefaultRealityTimeDiff,
 	}
 	return nil
 }
@@ -159,41 +153,21 @@ func generateRealityShortId() string {
 }
 
 func (cfg *Config) setPublicIP(ctx context.Context) error {
-	cl := &http.Client{
-		Timeout: time.Second * 30,
-	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, constants.IpifyUrl, nil)
+	// set ipv4
+	ip, err := ipinfo.PublicIPv4(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("get public ip: %w", err)
 	}
+	cfg.PublicIP = ip.String()
 
-	res, err := cl.Do(req)
+	// detect ipv6, set DNSIPv4Only
+	// no errors, just log
+	_, err = ipinfo.PublicIPv6(ctx)
 	if err != nil {
-		return err
-	}
-	defer res.Body.Close()
-
-	if res.StatusCode != http.StatusOK {
-		return fmt.Errorf("bad status code %d", res.StatusCode)
-	}
-
-	ipBytes, err := io.ReadAll(res.Body)
-	if err != nil {
-		return err
-	}
-
-	cfg.PublicIP = string(ipBytes)
-	return nil
-}
-
-func (cfg *Config) setIPv4Only(ctx context.Context) {
-	logf := func(format string, args ...any) {
-		format = "detect ipv6: " + format
-		clilog.Logf(format, args...)
-	}
-	hasIPv6 := ipv6detector.Detect(ctx, logf)
-	if !hasIPv6 {
-		clilog.Logf("ipv6 DNS is disabled")
 		cfg.DNSIPv4Only = true
+		clilog.Log("ipv6 disabled, err:", err)
+		return nil
 	}
+	cfg.DNSIPv4Only = false
+	return nil
 }

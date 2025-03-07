@@ -5,9 +5,11 @@ import (
 	"strings"
 
 	"github.com/alecthomas/kong"
-	"github.com/awryme/unchained/constants"
+	"github.com/awryme/unchained/appconfig"
 	"github.com/awryme/unchained/pkg/protocols"
 )
+
+const AppName = "unchained"
 
 type App struct {
 	Config   string      `help:"file to store generated/edited config file" short:"c" default:"./${appname}.json"`
@@ -20,13 +22,13 @@ type App struct {
 func main() {
 	var app App
 	appctx := kong.Parse(&app,
-		kong.Name(constants.AppName),
-		kong.Description(fmt.Sprintf("%s is a vpn/proxy application that sets up everything for you", constants.AppName)),
+		kong.Name(AppName),
+		kong.Description(fmt.Sprintf("%s is a vpn/proxy application that sets up everything for you", AppName)),
 		kong.DefaultEnvars(""),
 		kong.Vars{
-			"appname":       constants.AppName,
-			"dns":           constants.DefaultDns,
-			"log_level":     constants.DefaultLogLevel,
+			"appname":       AppName,
+			"dns":           appconfig.DefaultDns,
+			"log_level":     appconfig.DefaultLogLevel,
 			"protos":        strings.Join(protocols.List, ","),
 			"default_proto": protocols.Trojan,
 		},

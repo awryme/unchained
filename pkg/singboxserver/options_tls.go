@@ -2,7 +2,6 @@ package singboxserver
 
 import (
 	"github.com/awryme/unchained/appconfig"
-	"github.com/awryme/unchained/constants"
 	"github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing/common/json/badoption"
 )
@@ -17,7 +16,7 @@ func makeTlsOptions(cfg appconfig.Reality) option.InboundTLSOptionsContainer {
 				Handshake: option.InboundRealityHandshakeOptions{
 					ServerOptions: option.ServerOptions{
 						Server:     cfg.Server,
-						ServerPort: constants.DefaultRealityServerPort,
+						ServerPort: appconfig.DefaultRealityServerPort,
 					},
 				},
 				PrivateKey: cfg.PrivateKey,
