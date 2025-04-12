@@ -4,28 +4,35 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"net/netip"
 
 	"github.com/awryme/unchained/appconfig"
+	"github.com/awryme/unchained/pkg/protocols/trojan/trojaninbound"
+	"github.com/awryme/unchained/pkg/protocols/vless/vlessinbound"
 	box "github.com/sagernet/sing-box"
+	"github.com/sagernet/sing-box/adapter/inbound"
 	"github.com/sagernet/sing-box/include"
 	"github.com/sagernet/sing-box/option"
 )
 
-func Run(ctx context.Context, cfg appconfig.Config) (io.Closer, error) {
-	addr, err := netip.ParseAddr(cfg.Listen.Addr)
-	if err != nil {
-		return nil, fmt.Errorf("parse ip addr to listen on: %w", err)
-	}
+func makeInbountRegistry() *inbound.Registry {
+	reg := include.InboundRegistry()
+
+	vlessinbound.Register(reg)
+	trojaninbound.Register(reg)
+
+	return reg
+}
+
+func Run(ctx context.Context, cfg appconfig.Config, inbounds ...InboundMaker) (io.Closer, error) {
 	ctx = box.Context(ctx,
-		include.InboundRegistry(),
+		makeInbountRegistry(),
 		include.OutboundRegistry(),
 		include.EndpointRegistry(),
 	)
 
-	inbound, err := makeInbountOptions(cfg, addr)
-	if err != nil {
-		return nil, fmt.Errorf("make proxy inbound: %w", err)
+	singboxInbounds := make([]option.Inbound, len(inbounds))
+	for i, maker := range inbounds {
+		singboxInbounds[i] = maker.MakeInbound()
 	}
 
 	instance, err := box.New(box.Options{
@@ -33,7 +40,7 @@ func Run(ctx context.Context, cfg appconfig.Config) (io.Closer, error) {
 		Options: option.Options{
 			Log:      makeLogOptions(cfg),
 			DNS:      makeDnsOptions(cfg),
-			Inbounds: []option.Inbound{inbound},
+			Inbounds: singboxInbounds,
 		},
 	})
 	if err != nil {

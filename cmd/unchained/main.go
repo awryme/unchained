@@ -30,7 +30,7 @@ func main() {
 			"dns":           appconfig.DefaultDns,
 			"log_level":     appconfig.DefaultLogLevel,
 			"protos":        strings.Join(protocols.List, ","),
-			"default_proto": protocols.Trojan,
+			"default_proto": protocols.Vless,
 		},
 	)
 	err := appctx.Run()

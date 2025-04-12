@@ -6,9 +6,10 @@ import (
 	"fmt"
 	"math/rand/v2"
 	"net"
+	"net/netip"
 
 	"github.com/awryme/ipinfo"
-	"github.com/awryme/unchained/pkg/clilog"
+	"github.com/awryme/unchained/app/clilog"
 	"github.com/awryme/unchained/pkg/protocols"
 	"github.com/gofrs/uuid/v5"
 	"github.com/sethvargo/go-password/password"
@@ -19,10 +20,7 @@ func Generate(ctx context.Context, params *RuntimeParams) (Config, error) {
 	cfg := Config{
 		LogLevel: DefaultLogLevel,
 		DNS:      DefaultDns,
-		Proto:    protocols.Trojan,
-		Listen: Listen{
-			Addr: DefaultListenAddr,
-		},
+		Proto:    protocols.Vless,
 	}
 
 	if err := cfg.setRandomID(); err != nil {
@@ -31,7 +29,7 @@ func Generate(ctx context.Context, params *RuntimeParams) (Config, error) {
 
 	setRuntimeParams(&cfg, params)
 
-	if err := cfg.setRandomPort(); err != nil {
+	if err := cfg.setRandomListen(DefaultListenAddr); err != nil {
 		return cfg, fmt.Errorf("set random port: %w", err)
 	}
 
@@ -71,8 +69,11 @@ func (cfg *Config) setRealityConfig() error {
 	return nil
 }
 
-func (cfg *Config) setRandomPort() (err error) {
-	addr := cfg.Listen.Addr
+func (cfg *Config) setRandomListen(addrstr string) (err error) {
+	addr, err := netip.ParseAddr(addrstr)
+	if err != nil {
+		return err
+	}
 
 	a, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:0", addr))
 	if err != nil {
@@ -89,7 +90,8 @@ func (cfg *Config) setRandomPort() (err error) {
 		return err
 	}
 
-	cfg.Listen.Port = l.Addr().(*net.TCPAddr).Port
+	port := l.Addr().(*net.TCPAddr).Port
+	cfg.Listen = netip.AddrPortFrom(addr, uint16(port))
 	return nil
 }
 
@@ -123,7 +125,7 @@ func (cfg *Config) setVlessUUID() error {
 		return err
 	}
 
-	cfg.VlessUUID = id.String()
+	cfg.VlessUUID = id
 	return nil
 }
 
@@ -158,7 +160,7 @@ func (cfg *Config) setPublicIP(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("get public ip: %w", err)
 	}
-	cfg.PublicIP = ip.String()
+	cfg.PublicIP = ip
 
 	// detect ipv6, set DNSIPv4Only
 	// no errors, just log

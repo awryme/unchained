@@ -10,7 +10,7 @@ const Vless = "vless"
 
 var List = []string{Trojan, Vless}
 
-func Invalid(proto string) error {
+func ErrInvalid(proto string) error {
 	return fmt.Errorf(
 		"invalid protocol %s (options = %s)",
 		proto,

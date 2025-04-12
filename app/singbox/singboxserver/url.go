@@ -6,6 +6,7 @@ import (
 
 	"github.com/awryme/unchained/appconfig"
 	"github.com/awryme/unchained/pkg/protocols"
+	"github.com/awryme/unchained/pkg/protocols/vless/vlessvision"
 )
 
 func MakeUrl(cfg appconfig.Config) (string, error) {
@@ -16,7 +17,7 @@ func MakeUrl(cfg appconfig.Config) (string, error) {
 		return makeUrlVless(cfg), nil
 	}
 
-	return "", protocols.Invalid(cfg.Proto)
+	return "", protocols.ErrInvalid(cfg.Proto)
 }
 
 func makeUrlTrojan(cfg appconfig.Config) string {
@@ -36,19 +37,19 @@ func makeUrlVless(cfg appconfig.Config) string {
 	u := &url.URL{
 		Scheme:   protocols.Vless,
 		Host:     getHost(cfg),
-		User:     url.User(cfg.VlessUUID),
+		User:     url.User(cfg.VlessUUID.String()),
 		Fragment: cfg.Name(),
 	}
 	u.Query()
 	q := getCommonQuery(cfg)
-	q.Set("flow", vlessFlowVision)
+	q.Set("flow", vlessvision.Flow)
 	u.RawQuery = q.Encode()
 
 	return u.String()
 }
 
 func getHost(cfg appconfig.Config) string {
-	return fmt.Sprintf("%s:%d", cfg.PublicIP, cfg.Listen.Port)
+	return fmt.Sprintf("%s:%d", cfg.PublicIP.String(), cfg.Listen.Port())
 }
 
 func getCommonQuery(cfg appconfig.Config) url.Values {

@@ -1,0 +1,9 @@
+version: 3
+
+tasks:
+  build-linux:
+    env:
+      GOOS: linux
+      GOARCH: amd64
+      CGO_ENABLED: 0
+    cmd: go build -v -tags with_reality_server -o ./bin/unchained-linux ./cmd/unchained/

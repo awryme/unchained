@@ -2,23 +2,27 @@ package appconfig
 
 import (
 	"fmt"
+	"net/netip"
 	"strings"
 	"time"
+
+	"github.com/gofrs/uuid/v5"
 )
 
 type Config struct {
-	LogLevel       string   `json:"log_level"`
-	DNS            string   `json:"dns"`
-	DNSIPv4Only    bool     `json:"dns_ipv4_only"`
-	Proto          string   `json:"proto"`
-	ID             string   `json:"id"`
-	Tags           []string `json:"tags"`
-	PublicIP       string   `json:"public_ip"`
-	TrojanPassword string   `json:"trojan_password"`
-	VlessUUID      string   `json:"vless_uuid"`
+	LogLevel    string     `json:"log_level"`
+	DNS         string     `json:"dns"`
+	DNSIPv4Only bool       `json:"dns_ipv4_only"`
+	Proto       string     `json:"proto"`
+	ID          string     `json:"id"`
+	Tags        []string   `json:"tags"`
+	PublicIP    netip.Addr `json:"public_ip"`
 
-	Listen  Listen  `json:"listen"`
-	Reality Reality `json:"reality"`
+	TrojanPassword string    `json:"trojan_password"`
+	VlessUUID      uuid.UUID `json:"vless_uuid"`
+
+	Listen  netip.AddrPort `json:"listen"`
+	Reality Reality        `json:"reality"`
 }
 
 func (cfg Config) Name() string {
@@ -27,11 +31,6 @@ func (cfg Config) Name() string {
 		tags = "_" + strings.Join(cfg.Tags, "_")
 	}
 	return fmt.Sprintf("%s%s_%s", cfg.ID, tags, cfg.Proto)
-}
-
-type Listen struct {
-	Addr string `json:"addr"`
-	Port int    `json:"port"`
 }
 
 type Reality struct {
