@@ -8,10 +8,10 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/awryme/unchained/app/appconfig"
 	"github.com/awryme/unchained/app/clilog"
+	"github.com/awryme/unchained/app/singbox/memoryuserstore"
 	"github.com/awryme/unchained/app/singbox/singboxserver"
-	"github.com/awryme/unchained/app/singbox/singleuserstore"
-	"github.com/awryme/unchained/appconfig"
 	"github.com/awryme/unchained/pkg/protocols"
 )
 
@@ -33,7 +33,7 @@ func (c *CmdRun) Run(app *App) error {
 		return err
 	}
 
-	instance, err := singboxserver.Run(ctx, cfg, inbound)
+	instance, err := singboxserver.Run(ctx, cfg.Singbox, inbound)
 	if err != nil {
 		return err
 	}
@@ -50,34 +50,38 @@ func (c *CmdRun) Run(app *App) error {
 	return instance.Close()
 }
 
-func (c *CmdRun) getInbound(cfg appconfig.Config) (singboxserver.InboundMaker, error) {
+func (c *CmdRun) getInbound(cfg appconfig.Unchained) (singboxserver.InboundMaker, error) {
 	switch cfg.Proto {
 	case protocols.Trojan:
-		userStore := singleuserstore.NewTrojan("Single user", cfg.TrojanPassword)
-		return singboxserver.NewInboundTrojan(cfg.Listen, cfg.Reality, userStore), nil
+		userStore := memoryuserstore.NewTrojan()
+		userStore.Add("Single user", cfg.TrojanPassword)
+		return singboxserver.NewInboundTrojan(cfg.Listen, cfg.Singbox, userStore), nil
 	case protocols.Vless:
-		userStore := singleuserstore.NewVless("Single user", cfg.VlessUUID)
-		return singboxserver.NewInboundVless(cfg.Listen, cfg.Reality, userStore), nil
+		userStore := memoryuserstore.NewVless()
+		userStore.Add("Single user", cfg.VlessUUID)
+		return singboxserver.NewInboundVless(cfg.Listen, cfg.Singbox, userStore), nil
 	}
 
 	return nil, protocols.ErrInvalid(cfg.Proto)
-
 }
 
-func (c *CmdRun) getConfig(ctx context.Context, file string) (appconfig.Config, error) {
+func (c *CmdRun) getConfig(ctx context.Context, file string) (cfg appconfig.Unchained, err error) {
 	params := c.GetRuntimeParams()
 	if c.NoConfig {
-		return appconfig.Generate(ctx, params)
+		err := cfg.Generate(ctx, params)
+		return cfg, err
 	}
 
-	cfg, err := appconfig.Read(file, params)
+	cfg, err = appconfig.ReadUnchained(file, params)
 	if errors.Is(err, os.ErrNotExist) {
-		cfg, err = appconfig.Generate(ctx, params)
+		// cfg file not found, generate new one
+		err = cfg.Generate(ctx, params)
 	}
 	if err != nil {
 		return cfg, err
 	}
 
-	err = appconfig.Write(cfg, file)
+	// write any changes that we applied
+	err = appconfig.WriteUnchained(cfg, file)
 	return cfg, err
 }

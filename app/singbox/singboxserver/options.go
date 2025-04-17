@@ -3,13 +3,14 @@ package singboxserver
 import (
 	"net/netip"
 
-	"github.com/awryme/unchained/appconfig"
+	"github.com/awryme/unchained/app/appconfig"
+	"github.com/awryme/unchained/pkg/reality"
 	"github.com/sagernet/sing-box/option"
 	dns "github.com/sagernet/sing-dns"
 	"github.com/sagernet/sing/common/json/badoption"
 )
 
-func makeLogOptions(cfg appconfig.Config) *option.LogOptions {
+func makeLogOptions(cfg appconfig.Singbox) *option.LogOptions {
 	return &option.LogOptions{
 		Disabled:     false,
 		Timestamp:    true,
@@ -19,7 +20,7 @@ func makeLogOptions(cfg appconfig.Config) *option.LogOptions {
 	}
 }
 
-func makeDnsOptions(cfg appconfig.Config) *option.DNSOptions {
+func makeDnsOptions(cfg appconfig.Singbox) *option.DNSOptions {
 	server := option.DNSServerOptions{
 		Tag:     "dns-out",
 		Address: cfg.DNS,
@@ -49,7 +50,7 @@ func makeTlsOptions(cfg appconfig.Reality) option.InboundTLSOptions {
 			Handshake: option.InboundRealityHandshakeOptions{
 				ServerOptions: option.ServerOptions{
 					Server:     cfg.Server,
-					ServerPort: appconfig.DefaultRealityServerPort,
+					ServerPort: reality.DefaultServerPort,
 				},
 			},
 			PrivateKey: cfg.PrivateKey,

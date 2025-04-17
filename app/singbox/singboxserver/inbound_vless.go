@@ -3,7 +3,7 @@ package singboxserver
 import (
 	"net/netip"
 
-	"github.com/awryme/unchained/appconfig"
+	"github.com/awryme/unchained/app/appconfig"
 	"github.com/awryme/unchained/pkg/protocols/vless/vlessinbound"
 	"github.com/awryme/unchained/pkg/protocols/vless/vlessproto"
 	"github.com/sagernet/sing-box/option"
@@ -15,10 +15,10 @@ type InboundVless struct {
 	userStore vlessproto.UserStore
 }
 
-func NewInboundVless(listen netip.AddrPort, reality appconfig.Reality, userStore vlessproto.UserStore) InboundVless {
+func NewInboundVless(listen netip.AddrPort, cfg appconfig.Singbox, userStore vlessproto.UserStore) InboundVless {
 	return InboundVless{
 		listen:    listen,
-		reality:   reality,
+		reality:   cfg.Reality,
 		userStore: userStore,
 	}
 }

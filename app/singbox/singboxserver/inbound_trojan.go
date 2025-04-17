@@ -3,7 +3,7 @@ package singboxserver
 import (
 	"net/netip"
 
-	"github.com/awryme/unchained/appconfig"
+	"github.com/awryme/unchained/app/appconfig"
 	"github.com/awryme/unchained/pkg/protocols/trojan/trojaninbound"
 	"github.com/awryme/unchained/pkg/protocols/trojan/trojanproto"
 	"github.com/sagernet/sing-box/option"
@@ -15,10 +15,10 @@ type InboundTrojan struct {
 	userStore trojanproto.UserStore
 }
 
-func NewInboundTrojan(listen netip.AddrPort, reality appconfig.Reality, userStore trojanproto.UserStore) InboundTrojan {
+func NewInboundTrojan(listen netip.AddrPort, cfg appconfig.Singbox, userStore trojanproto.UserStore) InboundTrojan {
 	return InboundTrojan{
 		listen:    listen,
-		reality:   reality,
+		reality:   cfg.Reality,
 		userStore: userStore,
 	}
 }

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/awryme/unchained/appconfig"
+	"github.com/awryme/unchained/app/appconfig"
 	"github.com/awryme/unchained/pkg/protocols/trojan/trojaninbound"
 	"github.com/awryme/unchained/pkg/protocols/vless/vlessinbound"
 	box "github.com/sagernet/sing-box"
@@ -23,7 +23,7 @@ func makeInbountRegistry() *inbound.Registry {
 	return reg
 }
 
-func Run(ctx context.Context, cfg appconfig.Config, inbounds ...InboundMaker) (io.Closer, error) {
+func Run(ctx context.Context, cfg appconfig.Singbox, inbounds ...InboundMaker) (io.Closer, error) {
 	ctx = box.Context(ctx,
 		makeInbountRegistry(),
 		include.OutboundRegistry(),

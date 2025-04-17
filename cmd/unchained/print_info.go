@@ -3,19 +3,19 @@ package main
 import (
 	"fmt"
 
+	"github.com/awryme/unchained/app/appconfig"
 	"github.com/awryme/unchained/app/clilog"
 	"github.com/awryme/unchained/app/singbox/singboxserver"
-	"github.com/awryme/unchained/appconfig"
 	"github.com/yeqown/go-qrcode/v2"
 	"github.com/yeqown/go-qrcode/writer/file"
 )
 
-func printInfo(cfg appconfig.Config) error {
-	clilog.Log("log:", cfg.LogLevel)
-	clilog.Log("dns:", cfg.DNS)
+func printInfo(cfg appconfig.Unchained) error {
+	clilog.Log("log:", cfg.Singbox.LogLevel)
+	clilog.Log("dns:", cfg.Singbox.DNS)
 	clilog.Log("proto:", cfg.Proto)
 	clilog.Log("port:", cfg.Listen.Port())
-	clilog.Log("reality_server:", cfg.Reality.Server)
+	clilog.Log("reality_server:", cfg.Singbox.Reality.Server)
 	clilog.Log("name:", cfg.Name())
 	clilog.Log()
 

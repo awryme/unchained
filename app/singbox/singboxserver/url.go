@@ -2,14 +2,15 @@ package singboxserver
 
 import (
 	"fmt"
+	"net/netip"
 	"net/url"
 
-	"github.com/awryme/unchained/appconfig"
+	"github.com/awryme/unchained/app/appconfig"
 	"github.com/awryme/unchained/pkg/protocols"
 	"github.com/awryme/unchained/pkg/protocols/vless/vlessvision"
 )
 
-func MakeUrl(cfg appconfig.Config) (string, error) {
+func MakeUrl(cfg appconfig.Unchained) (string, error) {
 	switch cfg.Proto {
 	case protocols.Trojan:
 		return makeUrlTrojan(cfg), nil
@@ -20,47 +21,44 @@ func MakeUrl(cfg appconfig.Config) (string, error) {
 	return "", protocols.ErrInvalid(cfg.Proto)
 }
 
-func makeUrlTrojan(cfg appconfig.Config) string {
+func makeUrlTrojan(cfg appconfig.Unchained) string {
 	u := &url.URL{
 		Scheme:   protocols.Trojan,
-		Host:     getHost(cfg),
+		Host:     getHost(cfg.AppInfo, cfg.Listen),
 		User:     url.User(cfg.TrojanPassword),
 		Fragment: cfg.Name(),
 	}
-	q := getCommonQuery(cfg)
+	q := u.Query()
+	setRealityParams(q, cfg.Singbox.Reality)
 	u.RawQuery = q.Encode()
 
 	return u.String()
 }
 
-func makeUrlVless(cfg appconfig.Config) string {
+func makeUrlVless(cfg appconfig.Unchained) string {
 	u := &url.URL{
 		Scheme:   protocols.Vless,
-		Host:     getHost(cfg),
+		Host:     getHost(cfg.AppInfo, cfg.Listen),
 		User:     url.User(cfg.VlessUUID.String()),
 		Fragment: cfg.Name(),
 	}
-	u.Query()
-	q := getCommonQuery(cfg)
+	q := u.Query()
+	setRealityParams(q, cfg.Singbox.Reality)
 	q.Set("flow", vlessvision.Flow)
 	u.RawQuery = q.Encode()
 
 	return u.String()
 }
 
-func getHost(cfg appconfig.Config) string {
-	return fmt.Sprintf("%s:%d", cfg.PublicIP.String(), cfg.Listen.Port())
+func getHost(appInfo appconfig.AppInfo, listen netip.AddrPort) string {
+	return fmt.Sprintf("%s:%d", appInfo.PublicIP.String(), listen.Port())
 }
 
-func getCommonQuery(cfg appconfig.Config) url.Values {
-	q := make(url.Values)
-
+func setRealityParams(q url.Values, reality appconfig.Reality) {
 	q.Set("type", "tcp")
 	q.Set("security", "reality")
 	q.Set("fp", "chrome")
-	q.Set("sni", cfg.Reality.Server)
-	q.Set("pbk", cfg.Reality.PublicKey)
-	q.Set("sid", cfg.Reality.ShortId)
-
-	return q
+	q.Set("sni", reality.Server)
+	q.Set("pbk", reality.PublicKey)
+	q.Set("sid", reality.ShortId)
 }

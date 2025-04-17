@@ -1,9 +1,52 @@
 version: 3
 
 tasks:
-  build-linux:
+  gen: go tool templ generate
+
+  build-control:
+    deps: [gen]
+    cmd: go build -v -tags with_reality_server -o ./bin/unchained-control ./cmd/unchained_control/
+
+  run-control:
+    deps: [build-control]
+    cmd: ./bin/unchained-control run --port 8080
+
+  watch-control:
+    watch: true
+    sources:
+      - "**/*.templ"
+      - "**/*.css"
+      - "**/*.go"
+      - exclude: "**/*_templ.go"
+    cmds:
+      - task: run-control
+
+  build-unchained-linux:
+    deps: [gen]
     env:
       GOOS: linux
       GOARCH: amd64
       CGO_ENABLED: 0
-    cmd: go build -v -tags with_reality_server -o ./bin/unchained-linux ./cmd/unchained/
+    cmd: go build -v -tags with_reality_server -o ./bin/linux/unchained ./cmd/unchained/
+
+  build-worker-linux:
+    deps: [gen]
+    env:
+      GOOS: linux
+      GOARCH: amd64
+      CGO_ENABLED: 0
+    cmd: go build -v -tags with_reality_server -o ./bin/linux/unchained-worker ./cmd/unchained_worker/
+
+  build-control-linux:
+    deps: [gen]
+    env:
+      GOOS: linux
+      GOARCH: amd64
+      CGO_ENABLED: 0
+    cmd: go build -v -tags with_reality_server -o ./bin/linux/unchained-control ./cmd/unchained_control/
+
+  build-linux:
+    cmds:
+      - task: build-unchained-linux
+      - task: build-worker-linux
+      - task: build-control-linux

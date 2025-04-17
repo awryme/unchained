@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/awryme/unchained/appconfig"
+	"github.com/awryme/unchained/app/appconfig"
 )
 
 type CmdGenerate struct {
@@ -18,12 +18,13 @@ func (c *CmdGenerate) Run(app *App) error {
 		return fmt.Errorf("config file %s already exists, run command 'reset' to cleanup, or remove manually", app.Config)
 	}
 
-	cfg, err := appconfig.Generate(ctx, c.GetRuntimeParams())
+	var cfg appconfig.Unchained
+	err := cfg.Generate(ctx, c.GetRuntimeParams())
 	if err != nil {
 		return fmt.Errorf("generate config: %w", err)
 	}
 
-	return appconfig.Write(cfg, app.Config)
+	return appconfig.WriteUnchained(cfg, app.Config)
 }
 
 func fileExists(file string) bool {

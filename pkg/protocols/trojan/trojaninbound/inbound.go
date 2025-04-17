@@ -21,7 +21,7 @@ import (
 	N "github.com/sagernet/sing/common/network"
 )
 
-const TypeTrojanV2 = "vless_v2"
+const TypeTrojanV2 = "trojan_v2"
 
 func Register(registry *inbound.Registry) {
 	inbound.Register(registry, TypeTrojanV2, NewInbound)
