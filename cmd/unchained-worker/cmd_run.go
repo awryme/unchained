@@ -12,7 +12,6 @@ import (
 
 	"github.com/awryme/unchained/app/appconfig"
 	"github.com/awryme/unchained/app/clilog"
-	"github.com/awryme/unchained/app/control/workerapi"
 	"github.com/awryme/unchained/app/singbox/memoryuserstore"
 	"github.com/awryme/unchained/app/singbox/singboxserver"
 )
@@ -45,22 +44,23 @@ func (c *CmdRun) Run(app *App) error {
 	}
 	clilog.Log("Started singbox at", time.Now().Format(time.DateTime))
 
-	api, err := workerapi.New(workerapi.Params{
-		PublicIP:       cfg.AppInfo.PublicIP,
-		WorkerID:       cfg.Worker.ID,
-		Listen:         cfg.Worker.Listen,
-		ControlAddr:    c.ControlAddr,
-		JwtSecret:      cfg.Worker.JwtSecret,
-		EncodedCert:    cfg.Worker.EncodedCert,
-		EncodedCertKey: cfg.Worker.EncodedCertKey,
-	})
-	if err != nil {
-		return fmt.Errorf("create worker api: %w", err)
-	}
+	// register worker with a wrapper from unchained-control
+	// api, err := workerapi.New(workerapi.Params{
+	// 	PublicIP:       cfg.AppInfo.PublicIP,
+	// 	WorkerID:       cfg.Worker.ID,
+	// 	Listen:         cfg.Worker.Listen,
+	// 	ControlAddr:    c.ControlAddr,
+	// 	JwtSecret:      cfg.Worker.JwtSecret,
+	// 	EncodedCert:    cfg.Worker.EncodedCert,
+	// 	EncodedCertKey: cfg.Worker.EncodedCertKey,
+	// })
+	// if err != nil {
+	// 	return fmt.Errorf("create worker api: %w", err)
+	// }
 
-	if err := api.Register(); err != nil {
-		return fmt.Errorf("register worker: %w", err)
-	}
+	// if err := api.Register(); err != nil {
+	// 	return fmt.Errorf("register worker: %w", err)
+	// }
 
 	ch := make(chan os.Signal, 2)
 	signal.Notify(ch, os.Interrupt, syscall.SIGTERM)
@@ -68,7 +68,8 @@ func (c *CmdRun) Run(app *App) error {
 	clilog.Log("Got ctrl+c / interrupt, quitting")
 
 	return errors.Join(
-		api.Shutdown(ctx),
+		// shutdown api
+		// api.Shutdown(ctx),
 		instance.Close(),
 	)
 }
