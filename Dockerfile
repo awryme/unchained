@@ -11,5 +11,5 @@ COPY --from=build /unchained/unchained /unchained/unchained
 
 WORKDIR /unchained
 
-ENTRYPOINT [ "unchained", "-c", "unchained.json" ]
+ENTRYPOINT [ "/unchained/unchained", "-c", "/unchained/unchained.json" ]
 CMD [ "run" ]
