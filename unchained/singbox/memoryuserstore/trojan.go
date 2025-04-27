@@ -14,16 +14,16 @@ func NewTrojan() *Trojan {
 	}
 }
 
-func (s *Trojan) Add(name, password string) error {
+func (s *Trojan) Add(desc, password string) error {
 	key := trojanproto.NewKey(password)
 	s.users[key] = trojanproto.User{
-		Name: name,
+		Desc: desc,
 		Key:  key,
 	}
 	return nil
 }
 
-func (s *Trojan) Get(key trojanproto.Key) (trojanproto.User, bool, error) {
+func (s *Trojan) GetTrojan(key trojanproto.Key) (trojanproto.User, bool, error) {
 	user, ok := s.users[key]
 	return user, ok, nil
 }

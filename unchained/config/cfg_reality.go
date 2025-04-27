@@ -1,4 +1,4 @@
-package appconfig
+package config
 
 import (
 	"fmt"
@@ -15,7 +15,7 @@ type Reality struct {
 	TimeDiff   time.Duration `json:"time_diff"`
 }
 
-func (r *Reality) generate() error {
+func (r *Reality) Generate() error {
 	privateKey, publicKey, err := reality.MakeRealityKeyPair()
 	if err != nil {
 		return fmt.Errorf("generate reality keypair: %w", err)

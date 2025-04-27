@@ -7,33 +7,45 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 	"time"
 
-	"github.com/awryme/unchained/app/appconfig"
-	"github.com/awryme/unchained/app/clilog"
-	"github.com/awryme/unchained/app/singbox/memoryuserstore"
-	"github.com/awryme/unchained/app/singbox/singboxserver"
+	"github.com/awryme/unchained-control/unchained-control/workerapi"
+	"github.com/awryme/unchained/unchained-worker/config"
+	"github.com/awryme/unchained/unchained/clilog"
+	"github.com/awryme/unchained/unchained/singbox/singboxserver"
+	"github.com/awryme/unchained/unchained/urlmaker"
+	"github.com/awryme/unchained/unchained/userstore"
+	"github.com/awryme/unchained/unchained/workerstore"
 )
 
 type CmdRun struct {
 	LogLevel string   `help:"sing-box log level" default:"${log_level}"`
 	DNS      string   `help:"dns address, in sing-box format" default:"${dns}"`
-	ID       string   `help:"proxy id (used to identify proxy in client apps), random by default"`
 	Tags     []string `help:"proxy tags (used to identify proxy in client apps)"`
+	// todo: use id?
+	ID string `help:"proxy id (used to identify proxy in client apps), random by default"`
 
-	ControlAddr *url.URL `help:"control api address" required:""`
+	Control *url.URL `help:"control api address" required:""`
+
+	Dir string `help:"dir to store config file and data" default:"./data/"`
 }
 
-func (c *CmdRun) Run(app *App) error {
+func (cmd *CmdRun) Run(app *App) error {
 	ctx := context.Background()
 
-	cfg, err := c.getConfig(ctx, app.Config)
+	cfg, err := cmd.getConfig(ctx, cmd.Dir)
 	if err != nil {
 		return fmt.Errorf("get config: %w", err)
 	}
 
-	inbounds, err := c.getInbounds(cfg)
+	userstore, err := userstore.NewFileStore(cmd.Dir)
+	if err != nil {
+		return fmt.Errorf("create userstore: %w", err)
+	}
+
+	inbounds, err := cmd.getInbounds(cfg, userstore)
 	if err != nil {
 		return fmt.Errorf("create inbounds: %w", err)
 	}
@@ -44,23 +56,17 @@ func (c *CmdRun) Run(app *App) error {
 	}
 	clilog.Log("Started singbox at", time.Now().Format(time.DateTime))
 
-	// register worker with a wrapper from unchained-control
-	// api, err := workerapi.New(workerapi.Params{
-	// 	PublicIP:       cfg.AppInfo.PublicIP,
-	// 	WorkerID:       cfg.Worker.ID,
-	// 	Listen:         cfg.Worker.Listen,
-	// 	ControlAddr:    c.ControlAddr,
-	// 	JwtSecret:      cfg.Worker.JwtSecret,
-	// 	EncodedCert:    cfg.Worker.EncodedCert,
-	// 	EncodedCertKey: cfg.Worker.EncodedCertKey,
-	// })
-	// if err != nil {
-	// 	return fmt.Errorf("create worker api: %w", err)
-	// }
+	urlMaker := urlmaker.New(cfg.AppInfo, cfg.Singbox)
 
-	// if err := api.Register(); err != nil {
-	// 	return fmt.Errorf("register worker: %w", err)
-	// }
+	workerstore, err := workerstore.NewFileStore(cmd.Dir, userstore, urlMaker)
+	if err != nil {
+		return fmt.Errorf("create workerstore: %w", err)
+	}
+
+	api, err := workerapi.New(cmd.Control, cfg.Worker.Listen, cfg.AppInfo.PublicIP, workerstore)
+	if err != nil {
+		return fmt.Errorf("create worker api: %w", err)
+	}
 
 	ch := make(chan os.Signal, 2)
 	signal.Notify(ch, os.Interrupt, syscall.SIGTERM)
@@ -69,23 +75,23 @@ func (c *CmdRun) Run(app *App) error {
 
 	return errors.Join(
 		// shutdown api
-		// api.Shutdown(ctx),
+		api.Shutdown(time.Second*10),
 		instance.Close(),
 	)
 }
 
-func (rp *CmdRun) GetRuntimeParams() *appconfig.UnchainedWorkerRuntimeParams {
-	return &appconfig.UnchainedWorkerRuntimeParams{
-		LogLevel: rp.LogLevel,
-		DNS:      rp.DNS,
-		Tags:     rp.Tags,
+func (cmd *CmdRun) getConfig(ctx context.Context, dir string) (cfg config.UnchainedWorker, err error) {
+	if err = os.MkdirAll(dir, os.ModePerm); err != nil {
+		return cfg, fmt.Errorf("make data dir: %w", err)
 	}
-}
+	params := &config.DynamicParams{
+		LogLevel: cmd.LogLevel,
+		DNS:      cmd.DNS,
+		Tags:     cmd.Tags,
+	}
 
-func (c *CmdRun) getConfig(ctx context.Context, file string) (cfg appconfig.UnchainedWorker, err error) {
-	params := c.GetRuntimeParams()
-
-	cfg, err = appconfig.ReadUnchainedWorker(file, params)
+	file := filepath.Join(dir, ConfigName)
+	cfg, err = config.Read(file, params)
 	if errors.Is(err, os.ErrNotExist) {
 		// cfg file not found, generate new one
 		err = cfg.Generate(ctx, params)
@@ -95,16 +101,13 @@ func (c *CmdRun) getConfig(ctx context.Context, file string) (cfg appconfig.Unch
 	}
 
 	// write any changes that we applied
-	err = appconfig.WriteUnchainedWorker(cfg, file)
+	err = config.Write(cfg, file)
 	return cfg, err
 }
 
-func (c *CmdRun) getInbounds(cfg appconfig.UnchainedWorker) ([]singboxserver.InboundMaker, error) {
-	trojanUserStore := memoryuserstore.NewTrojan()
-	trojanInbound := singboxserver.NewInboundTrojan(cfg.ListenTrojan, cfg.Singbox, trojanUserStore)
-
-	vlessUserStore := memoryuserstore.NewVless()
-	vlessInbound := singboxserver.NewInboundVless(cfg.ListenVless, cfg.Singbox, vlessUserStore)
+func (cmd *CmdRun) getInbounds(cfg config.UnchainedWorker, store *userstore.FileStore) ([]singboxserver.InboundMaker, error) {
+	trojanInbound := singboxserver.NewInboundTrojan(cfg.Singbox.TrojanProxy, store)
+	vlessInbound := singboxserver.NewInboundVless(cfg.Singbox.VlessProxy, store)
 
 	return []singboxserver.InboundMaker{
 		trojanInbound,

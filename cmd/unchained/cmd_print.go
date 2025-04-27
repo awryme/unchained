@@ -3,16 +3,17 @@ package main
 import (
 	"fmt"
 
-	"github.com/awryme/unchained/app/appconfig"
+	"github.com/awryme/unchained/unchained/config"
 )
 
 type CmdPrint struct {
 }
 
 func (c *CmdPrint) Run(app *App) error {
-	cfg, err := appconfig.ReadUnchained(app.Config, nil)
+	cfg, err := config.Read(app.Config, nil)
 	if err != nil {
 		return fmt.Errorf("read config: %w", err)
 	}
-	return printInfo(cfg)
+
+	return printInfo(cfg, cfg.AppInfo, cfg.Singbox)
 }

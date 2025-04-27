@@ -47,7 +47,7 @@ func (s *Service) NewConnection(ctx context.Context, conn net.Conn, source M.Soc
 		return s.fallback(ctx, conn, source, key[:n], E.New("bad request size"), onClose)
 	}
 
-	user, found, err := s.userStore.Get(key)
+	user, found, err := s.userStore.GetTrojan(key)
 	if err != nil {
 		return err
 	}

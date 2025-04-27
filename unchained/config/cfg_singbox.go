@@ -1,11 +1,11 @@
-package appconfig
+package config
 
 import (
 	"context"
 	"fmt"
 
 	"github.com/awryme/ipinfo"
-	"github.com/awryme/unchained/app/clilog"
+	"github.com/awryme/unchained/unchained/clilog"
 )
 
 type Singbox struct {
@@ -13,16 +13,21 @@ type Singbox struct {
 	DNS         string `json:"dns"`
 	DNSIPv4Only bool   `json:"dns_ipv4_only"`
 
-	Reality Reality `json:"reality"`
+	VlessProxy  ProxyParams `json:"vless_proxy"`
+	TrojanProxy ProxyParams `json:"trojan_proxy"`
 }
 
-func (cfg *Singbox) generate(ctx context.Context) (err error) {
+func (cfg *Singbox) Generate(ctx context.Context) (err error) {
 	if err := cfg.setIpV4Only(ctx); err != nil {
 		return fmt.Errorf("set public ip: %w", err)
 	}
 
-	if err := cfg.Reality.generate(); err != nil {
-		return err
+	if err := cfg.VlessProxy.Generate(ctx); err != nil {
+		return fmt.Errorf("generate vless proxy: %w", err)
+	}
+
+	if err := cfg.TrojanProxy.Generate(ctx); err != nil {
+		return fmt.Errorf("generate trojan proxy: %w", err)
 	}
 
 	return nil

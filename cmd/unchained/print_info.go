@@ -3,23 +3,27 @@ package main
 import (
 	"fmt"
 
-	"github.com/awryme/unchained/app/appconfig"
-	"github.com/awryme/unchained/app/clilog"
-	"github.com/awryme/unchained/app/singbox/singboxserver"
+	"github.com/awryme/unchained/unchained/clilog"
+	"github.com/awryme/unchained/unchained/config"
+	"github.com/awryme/unchained/unchained/protocols"
+	"github.com/awryme/unchained/unchained/urlmaker"
 	"github.com/yeqown/go-qrcode/v2"
 	"github.com/yeqown/go-qrcode/writer/file"
 )
 
-func printInfo(cfg appconfig.Unchained) error {
-	clilog.Log("log:", cfg.Singbox.LogLevel)
-	clilog.Log("dns:", cfg.Singbox.DNS)
+func printInfo(cfg config.Unchained, appInfo config.AppInfo, singbox config.Singbox) error {
+	clilog.Log("log:", singbox.LogLevel)
+	clilog.Log("dns:", singbox.DNS)
 	clilog.Log("proto:", cfg.Proto)
-	clilog.Log("port:", cfg.Listen.Port())
-	clilog.Log("reality_server:", cfg.Singbox.Reality.Server)
-	clilog.Log("name:", cfg.Name())
+
+	printProxyInfo(protocols.Vless, singbox.VlessProxy)
+	printProxyInfo(protocols.Trojan, singbox.TrojanProxy)
+
+	clilog.Log("name:", appInfo.Name(cfg.Proto))
 	clilog.Log()
 
-	url, err := singboxserver.MakeUrl(cfg)
+	urlMaker := urlmaker.New(appInfo, singbox)
+	url, err := urlMaker.MakeByProto(cfg.Proto, cfg.VlessUUID, cfg.TrojanPassword)
 	if err != nil {
 		return fmt.Errorf("make proxy url: %w", err)
 	}
@@ -38,4 +42,10 @@ func printInfo(cfg appconfig.Unchained) error {
 		return fmt.Errorf("printing qr code: %w", err)
 	}
 	return nil
+}
+
+func printProxyInfo(proto string, params config.ProxyParams) {
+	clilog.Logf("%s params:", proto)
+	clilog.Log("\tport:", params.Listen.Port())
+	clilog.Log("\treality server:", params.Reality.Server)
 }

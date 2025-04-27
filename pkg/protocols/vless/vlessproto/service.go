@@ -45,7 +45,7 @@ func (s *VlessService) NewConnection(ctx context.Context, conn net.Conn, source 
 	if err != nil {
 		return err
 	}
-	user, ok, err := s.userStore.Get(request.UUID)
+	user, ok, err := s.userStore.GetVless(request.UUID)
 	if err != nil {
 		return fmt.Errorf("get user '%s' from store: %w", uuid.FromBytesOrNil(request.UUID[:]).String(), err)
 	}

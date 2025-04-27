@@ -179,8 +179,8 @@ func (h *Inbound) newConnection(ctx context.Context, conn net.Conn, metadata ada
 		N.CloseOnHandshakeFailure(conn, onClose, os.ErrInvalid)
 		return
 	}
-	metadata.User = user.Name
-	h.logger.InfoContext(ctx, "[", user.Name, "] inbound connection to ", metadata.Destination)
+	metadata.User = user.Desc
+	h.logger.InfoContext(ctx, "[", user.Desc, "] inbound connection to ", metadata.Destination)
 	h.router.RouteConnectionEx(ctx, conn, metadata, onClose)
 }
 
@@ -192,8 +192,8 @@ func (h *Inbound) newPacketConnection(ctx context.Context, conn N.PacketConn, me
 		N.CloseOnHandshakeFailure(conn, onClose, os.ErrInvalid)
 		return
 	}
-	metadata.User = user.Name
-	h.logger.InfoContext(ctx, "[", user.Name, "] inbound packet connection to ", metadata.Destination)
+	metadata.User = user.Desc
+	h.logger.InfoContext(ctx, "[", user.Desc, "] inbound packet connection to ", metadata.Destination)
 	h.router.RoutePacketConnectionEx(ctx, conn, metadata, onClose)
 }
 

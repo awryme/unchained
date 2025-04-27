@@ -5,15 +5,15 @@ import (
 	"strings"
 
 	"github.com/alecthomas/kong"
-	"github.com/awryme/unchained/app/appconfig"
-	"github.com/awryme/unchained/pkg/protocols"
+	"github.com/awryme/unchained/unchained/defaults"
+	"github.com/awryme/unchained/unchained/protocols"
 )
 
 const AppName = "unchained-worker"
+const ConfigName = AppName + ".json"
 
 type App struct {
-	Config string `help:"file to store generated/edited config file" short:"c" default:"./${appname}.json"`
-	Run    CmdRun `cmd:"" help:"run vpn worker, generate config if it doesn't exist"`
+	Run CmdRun `cmd:"" help:"run vpn server worker, generate config if it doesn't exist"`
 }
 
 func main() {
@@ -24,8 +24,8 @@ func main() {
 		kong.DefaultEnvars(""),
 		kong.Vars{
 			"appname":       AppName,
-			"dns":           appconfig.DefaultDns,
-			"log_level":     appconfig.DefaultLogLevel,
+			"dns":           defaults.Dns,
+			"log_level":     defaults.LogLevel,
 			"protos":        strings.Join(protocols.List, ","),
 			"default_proto": protocols.Vless,
 		},

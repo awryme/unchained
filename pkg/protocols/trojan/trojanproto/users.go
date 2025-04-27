@@ -1,10 +1,10 @@
 package trojanproto
 
 type User struct {
-	Name string
+	Desc string
 	Key  Key
 }
 
 type UserStore interface {
-	Get(key Key) (User, bool, error)
+	GetTrojan(key Key) (User, bool, error)
 }

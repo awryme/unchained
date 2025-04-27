@@ -16,16 +16,16 @@ func NewVless() *Vless {
 	}
 }
 
-func (s *Vless) Add(name string, id uuid.UUID) error {
+func (s *Vless) Add(desc string, id uuid.UUID) error {
 	s.users[id] = vlessproto.User{
-		Name: name,
+		Desc: desc,
 		UUID: id,
 		Flow: vlessvision.Flow,
 	}
 	return nil
 }
 
-func (s *Vless) Get(id uuid.UUID) (vlessproto.User, bool, error) {
+func (s *Vless) GetVless(id uuid.UUID) (vlessproto.User, bool, error) {
 	u, ok := s.users[id]
 	return u, ok, nil
 }

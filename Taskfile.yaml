@@ -10,22 +10,43 @@ tasks:
       CGO_ENABLED: 0
     cmd: go build -v -tags with_reality_server -o ./bin/$GOOS-$GOARCH/{{ .APP }} ./cmd/{{ .APP }}/
 
-  build-unchained-linux:
-    desc: "build `unchained` app for linux"
+  build-unchained:
+    desc: "build `unchained` app"
+    deps: [run-tests]
     cmds:
-      - task: build-bin-linux
+      - task: build-only
         vars:
           APP: unchained
 
-  build-worker-linux:
-    desc: "build `unchained-worker` app for linux"
+  build-unchained-worker:
+    desc: "build `unchained-worker` app"
+    deps: [run-tests]
     cmds:
-      - task: build-bin-linux
+      - task: build-only
         vars:
           APP: unchained-worker
 
-  build-linux:
+  build-all-linux:
     desc: "build all apps for linux"
+    deps: [run-tests]
     cmds:
-      - task: build-unchained-linux
-      - task: build-worker-linux
+      - for: [unchained, unchained-worker]
+        task: build-only
+        vars:
+          APP: "{{ .ITEM }}"
+          GOOS: linux
+          GOARCH: amd64
+          BINDDIR: linux-amd64
+
+  build-only:
+    internal: true
+    desc: "build {{ .APP }} for specific platform"
+    env:
+      GOOS: "{{ .GOOS }}"
+      GOARCH: "{{ .GOARCH }}"
+      CGO_ENABLED: 0
+    cmd: go build -v -tags with_reality_server -o ./bin/{{ .BINDDIR }}/{{ .APP }} ./cmd/{{ .APP }}/
+
+  run-tests:
+    desc: "run go test"
+    cmd: go test -v ./...

@@ -5,6 +5,7 @@ go 1.23.6
 require (
 	github.com/alecthomas/kong v1.8.1
 	github.com/awryme/ipinfo v0.0.0-20250307222634-89b1d598b531
+	github.com/awryme/subdir v0.0.0-20240622215526-d79f386a3398
 	github.com/gofrs/uuid/v5 v5.3.0
 	github.com/sagernet/reality v0.0.0-20230406110435-ee17307e7691
 	github.com/sagernet/sing v0.6.1

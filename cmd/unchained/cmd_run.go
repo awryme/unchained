@@ -8,27 +8,30 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/awryme/unchained/app/appconfig"
-	"github.com/awryme/unchained/app/clilog"
-	"github.com/awryme/unchained/app/singbox/memoryuserstore"
-	"github.com/awryme/unchained/app/singbox/singboxserver"
-	"github.com/awryme/unchained/pkg/protocols"
+	"github.com/awryme/unchained/unchained/clilog"
+	"github.com/awryme/unchained/unchained/config"
+	"github.com/awryme/unchained/unchained/protocols"
+	"github.com/awryme/unchained/unchained/singbox/memoryuserstore"
+	"github.com/awryme/unchained/unchained/singbox/singboxserver"
 )
 
 type CmdRun struct {
-	RuntimeParams `embed:""`
+	LogLevel string   `help:"sing-box log level" default:"${log_level}"`
+	DNS      string   `help:"dns address, in sing-box format" default:"${dns}"`
+	Proto    string   `short:"p" help:"set used protocol: ${enum}" enum:"${protos}" default:"${default_proto}"`
+	Tags     []string `help:"proxy tags (used to identify proxy in client apps)"`
 
 	NoConfig bool `help:"only generate config, ignore existing"`
 }
 
-func (c *CmdRun) Run(app *App) error {
+func (cmd *CmdRun) Run(app *App) error {
 	ctx := context.Background()
-	cfg, err := c.getConfig(ctx, app.Config)
+	cfg, err := cmd.getConfig(ctx, app.Config)
 	if err != nil {
 		return err
 	}
 
-	inbound, err := c.getInbound(cfg)
+	inbound, err := cmd.getInbound(cfg)
 	if err != nil {
 		return err
 	}
@@ -38,7 +41,7 @@ func (c *CmdRun) Run(app *App) error {
 		return err
 	}
 	clilog.Log("Started at", time.Now().Format(time.DateTime))
-	err = printInfo(cfg)
+	err = printInfo(cfg, cfg.AppInfo, cfg.Singbox)
 	if err != nil {
 		return err
 	}
@@ -50,29 +53,34 @@ func (c *CmdRun) Run(app *App) error {
 	return instance.Close()
 }
 
-func (c *CmdRun) getInbound(cfg appconfig.Unchained) (singboxserver.InboundMaker, error) {
+func (cmd *CmdRun) getInbound(cfg config.Unchained) (singboxserver.InboundMaker, error) {
 	switch cfg.Proto {
 	case protocols.Trojan:
 		userStore := memoryuserstore.NewTrojan()
 		userStore.Add("Single user", cfg.TrojanPassword)
-		return singboxserver.NewInboundTrojan(cfg.Listen, cfg.Singbox, userStore), nil
+		return singboxserver.NewInboundTrojan(cfg.Singbox.TrojanProxy, userStore), nil
 	case protocols.Vless:
 		userStore := memoryuserstore.NewVless()
 		userStore.Add("Single user", cfg.VlessUUID)
-		return singboxserver.NewInboundVless(cfg.Listen, cfg.Singbox, userStore), nil
+		return singboxserver.NewInboundVless(cfg.Singbox.VlessProxy, userStore), nil
 	}
 
 	return nil, protocols.ErrInvalid(cfg.Proto)
 }
 
-func (c *CmdRun) getConfig(ctx context.Context, file string) (cfg appconfig.Unchained, err error) {
-	params := c.GetRuntimeParams()
-	if c.NoConfig {
+func (cmd *CmdRun) getConfig(ctx context.Context, file string) (cfg config.Unchained, err error) {
+	params := &config.DynamicParams{
+		LogLevel: cmd.LogLevel,
+		DNS:      cmd.DNS,
+		Proto:    cmd.Proto,
+		Tags:     cmd.Tags,
+	}
+	if cmd.NoConfig {
 		err := cfg.Generate(ctx, params)
 		return cfg, err
 	}
 
-	cfg, err = appconfig.ReadUnchained(file, params)
+	cfg, err = config.Read(file, params)
 	if errors.Is(err, os.ErrNotExist) {
 		// cfg file not found, generate new one
 		err = cfg.Generate(ctx, params)
@@ -82,6 +90,6 @@ func (c *CmdRun) getConfig(ctx context.Context, file string) (cfg appconfig.Unch
 	}
 
 	// write any changes that we applied
-	err = appconfig.WriteUnchained(cfg, file)
+	err = config.Write(cfg, file)
 	return cfg, err
 }

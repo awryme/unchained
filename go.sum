@@ -27,6 +27,8 @@ github.com/armon/go-socks5 v0.0.0-20160902184237-e75332964ef5 h1:0CwZNZbxp69SHPd
 github.com/armon/go-socks5 v0.0.0-20160902184237-e75332964ef5/go.mod h1:wHh0iHkYZB8zMSxRWpUBQtwG5a7fFgvEO+odwuTv2gs=
 github.com/awryme/ipinfo v0.0.0-20250307222634-89b1d598b531 h1:zczk3M/FdlO0RNxsM/39RTfcvgdg90BwcLLoMKFoVxQ=
 github.com/awryme/ipinfo v0.0.0-20250307222634-89b1d598b531/go.mod h1:mtm0NzyP9NamdGI14dW9JtZ0jj+f3YvyBa/3IGFG2Ao=
+github.com/awryme/subdir v0.0.0-20240622215526-d79f386a3398 h1:y0GPZSBM9nt3vD3/YmVOOO00U6qA11yDjDe4FjjlkUA=
+github.com/awryme/subdir v0.0.0-20240622215526-d79f386a3398/go.mod h1:wCD9eAt6DzDynhlQQwAFViq/nBqrKOCh39eCbW+IaXE=
 github.com/caddyserver/certmagic v0.20.0 h1:bTw7LcEZAh9ucYCRXyCpIrSAGplplI0vGYJ4BpCQ/Fc=
 github.com/caddyserver/certmagic v0.20.0/go.mod h1:N4sXgpICQUskEWpj7zVzvWD41p3NYacrNoZYiRM2jTg=
 github.com/chainguard-dev/git-urls v1.0.2 h1:pSpT7ifrpc5X55n4aTTm7FFUE+ZQHKiqpiwNkJrVcKQ=
