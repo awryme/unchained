@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/awryme/unchained/pkg/buildinfo"
 	"github.com/awryme/unchained/unchained/clilog"
 	"github.com/awryme/unchained/unchained/config"
 	"github.com/awryme/unchained/unchained/protocols"
@@ -10,6 +11,13 @@ import (
 	"github.com/yeqown/go-qrcode/v2"
 	"github.com/yeqown/go-qrcode/writer/file"
 )
+
+func printVersion() {
+	rev, revtime, ok := buildinfo.GetGitRevision()
+	if ok {
+		clilog.Log("built at:", rev, revtime)
+	}
+}
 
 func printInfo(cfg config.Unchained, appInfo config.AppInfo, singbox config.Singbox) error {
 	clilog.Log("log:", singbox.LogLevel)

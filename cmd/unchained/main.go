@@ -18,6 +18,7 @@ type App struct {
 }
 
 func main() {
+	printVersion()
 	var app App
 	appctx := kong.Parse(&app,
 		kong.Name(AppName),
