@@ -21,7 +21,7 @@ func main() {
 	appctx := kong.Parse(&app,
 		kong.Name(AppName),
 		kong.Description(fmt.Sprintf("%s is a vpn/proxy worker application that sets up everything for you and connects to a central control server", AppName)),
-		kong.DefaultEnvars(""),
+		kong.DefaultEnvars("UNCHAINED_WORKER"),
 		kong.Vars{
 			"appname":       AppName,
 			"dns":           defaults.Dns,

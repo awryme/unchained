@@ -3,8 +3,10 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 	"time"
 
@@ -21,12 +23,14 @@ type CmdRun struct {
 	Proto    string   `short:"p" help:"set used protocol: ${enum}" enum:"${protos}" default:"${default_proto}"`
 	Tags     []string `help:"proxy tags (used to identify proxy in client apps)"`
 
-	NoConfig bool `help:"only generate config, ignore existing"`
+	NoConfig bool   `help:"only generate config, ignore existing"`
+	Dir      string `help:"dir to store config file and data" default:"./data/"`
 }
 
 func (cmd *CmdRun) Run(app *App) error {
 	ctx := context.Background()
-	cfg, err := cmd.getConfig(ctx, app.Config)
+
+	cfg, err := cmd.getConfig(ctx)
 	if err != nil {
 		return err
 	}
@@ -41,7 +45,7 @@ func (cmd *CmdRun) Run(app *App) error {
 		return err
 	}
 	clilog.Log("Started at", time.Now().Format(time.DateTime))
-	err = printInfo(cfg, cfg.AppInfo, cfg.Singbox)
+	err = printInfo(cmd.Dir, cfg, cfg.AppInfo, cfg.Singbox)
 	if err != nil {
 		return err
 	}
@@ -68,7 +72,15 @@ func (cmd *CmdRun) getInbound(cfg config.Unchained) (singboxserver.InboundMaker,
 	return nil, protocols.ErrInvalid(cfg.Proto)
 }
 
-func (cmd *CmdRun) getConfig(ctx context.Context, file string) (cfg config.Unchained, err error) {
+func (cmd *CmdRun) getConfigName() (string, error) {
+	if err := os.MkdirAll(cmd.Dir, os.ModePerm); err != nil {
+		return "", fmt.Errorf("make data dir: %w", err)
+	}
+	file := filepath.Join(cmd.Dir, ConfigName)
+	return file, nil
+}
+
+func (cmd *CmdRun) getConfig(ctx context.Context) (cfg config.Unchained, err error) {
 	params := &config.DynamicParams{
 		LogLevel: cmd.LogLevel,
 		DNS:      cmd.DNS,
@@ -80,6 +92,10 @@ func (cmd *CmdRun) getConfig(ctx context.Context, file string) (cfg config.Uncha
 		return cfg, err
 	}
 
+	file, err := cmd.getConfigName()
+	if err != nil {
+		return cfg, fmt.Errorf("get config: %w", err)
+	}
 	cfg, err = config.Read(file, params)
 	if errors.Is(err, os.ErrNotExist) {
 		// cfg file not found, generate new one

@@ -10,11 +10,11 @@ import (
 )
 
 const AppName = "unchained"
+const ConfigName = AppName + ".json"
 
 type App struct {
-	Config string   `help:"file to store generated/edited config file" short:"c" default:"./${appname}.json"`
-	Run    CmdRun   `cmd:"" help:"run vpn server, generate config if it doesn't exist"`
-	Print  CmdPrint `cmd:"" help:"print connection info for client"`
+	Run   CmdRun   `cmd:"" help:"run vpn server, generate config if it doesn't exist"`
+	Print CmdPrint `cmd:"" help:"print connection info for client"`
 }
 
 func main() {
@@ -23,7 +23,7 @@ func main() {
 	appctx := kong.Parse(&app,
 		kong.Name(AppName),
 		kong.Description(fmt.Sprintf("%s is a vpn/proxy application that sets up everything for you", AppName)),
-		kong.DefaultEnvars(""),
+		kong.DefaultEnvars("UNCHAINED"),
 		kong.Vars{
 			"appname":       AppName,
 			"dns":           defaults.Dns,

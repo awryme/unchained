@@ -9,7 +9,8 @@ RUN go build -v -o /unchained/unchained -tags with_reality_server ./cmd/unchaine
 FROM alpine
 COPY --from=build /unchained/unchained /unchained/unchained
 
-WORKDIR /unchained
+WORKDIR /unchained/
+ENV UNCHAINED_DIR=/data/
 
-ENTRYPOINT [ "/unchained/unchained", "-c", "/unchained/unchained.json" ]
+ENTRYPOINT [ "/unchained/unchained" ]
 CMD [ "run" ]

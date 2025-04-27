@@ -5,16 +5,19 @@ services:
     restart: always
     network_mode: "host"
     # you can discover env options with -h flag
-    # environment:
-        # default dns is 1.1.1.1 over tls, you can set it to something else
-      # - DNS=tls://1.1.1.1
+    environment:
+        # default dns is 1.1.1.1 over tls
+      - UNCHAINED_DNS=tls://1.1.1.1
 
         # set custom tag to show in client app
-      # - TAGS=myserver
+      - UNCHAINED_TAGS=myserver
 
-        # default proto is trojan, you can set it vless
-      # - PROTO=trojan
-    # set volume for /config/ to save file to host and modify it later
+        # default proto is vless, you can set it trojan
+      - UNCHAINED_PROTO=trojan
+
+        # default data dir is /data/
+      - UNCHAINED_DIR=/mydatadir/
+    # set volume for /data/ or $UNCHAINED_DIR to save files to host and modify it later
     # config file has more values than flags/env
     # volumes:
-    #   - ./:/config/
+    #   - ./:/data/

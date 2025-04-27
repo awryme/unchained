@@ -35,7 +35,7 @@ type CmdRun struct {
 func (cmd *CmdRun) Run(app *App) error {
 	ctx := context.Background()
 
-	cfg, err := cmd.getConfig(ctx, cmd.Dir)
+	cfg, err := cmd.getConfig(ctx)
 	if err != nil {
 		return fmt.Errorf("get config: %w", err)
 	}
@@ -80,17 +80,26 @@ func (cmd *CmdRun) Run(app *App) error {
 	)
 }
 
-func (cmd *CmdRun) getConfig(ctx context.Context, dir string) (cfg config.UnchainedWorker, err error) {
-	if err = os.MkdirAll(dir, os.ModePerm); err != nil {
-		return cfg, fmt.Errorf("make data dir: %w", err)
+func (cmd *CmdRun) getConfigName() (string, error) {
+	if err := os.MkdirAll(cmd.Dir, os.ModePerm); err != nil {
+		return "", fmt.Errorf("make data dir: %w", err)
 	}
+	file := filepath.Join(cmd.Dir, ConfigName)
+	return file, nil
+}
+
+func (cmd *CmdRun) getConfig(ctx context.Context) (cfg config.UnchainedWorker, err error) {
 	params := &config.DynamicParams{
 		LogLevel: cmd.LogLevel,
 		DNS:      cmd.DNS,
 		Tags:     cmd.Tags,
 	}
 
-	file := filepath.Join(dir, ConfigName)
+	file, err := cmd.getConfigName()
+	if err != nil {
+		return cfg, fmt.Errorf("get config: %w", err)
+	}
+
 	cfg, err = config.Read(file, params)
 	if errors.Is(err, os.ErrNotExist) {
 		// cfg file not found, generate new one

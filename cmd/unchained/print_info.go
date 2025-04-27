@@ -19,7 +19,8 @@ func printVersion() {
 	}
 }
 
-func printInfo(cfg config.Unchained, appInfo config.AppInfo, singbox config.Singbox) error {
+func printInfo(dataDir string, cfg config.Unchained, appInfo config.AppInfo, singbox config.Singbox) error {
+	clilog.Log("data dir:", dataDir)
 	clilog.Log("log:", singbox.LogLevel)
 	clilog.Log("dns:", singbox.DNS)
 	clilog.Log("proto:", cfg.Proto)
